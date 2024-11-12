@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "892785645735",
+    "firebase_url": "https://userform-41560-default-rtdb.firebaseio.com",
+    "project_id": "userform-41560",
+    "storage_bucket": "userform-41560.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:892785645735:android:e8a90fbb8dfd25719c2382",
+        "android_client_info": {
+          "package_name": "com.example.u_form"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBI997UAsEaEexxCsNTqQ4sfOrP3Nnoi6I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

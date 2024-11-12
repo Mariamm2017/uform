@@ -1,0 +1,28 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "userform-41560",
+          "appId": "1:892785645735:android:e8a90fbb8dfd25719c2382",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "userform-41560",
+          "configurations": {
+            "android": "1:892785645735:android:e8a90fbb8dfd25719c2382",
+            "ios": "1:892785645735:ios:a901d24942904d4f9c2382",
+            "macos": "1:892785645735:ios:a901d24942904d4f9c2382",
+            "web": "1:892785645735:web:e814868e442159be9c2382",
+            "windows": "1:892785645735:web:7c41edea37a730ed9c2382"
+          }
+        }
+      }
+    }
+  },
+  "database": {
+    "rules": "database.rules.json"
+  }
+}
