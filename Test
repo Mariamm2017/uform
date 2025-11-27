@@ -1,1 +1,147 @@
+dependencies:
+  flutter:
+    sdk: flutter
+  google_maps_flutter: ^2.5.0
+  geolocator: ^12.0.0
+  firebase_core: ^3.4.0
+  cloud_firestore: ^5.1.0
+
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/material.dart';
+import 'map_screen.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(primarySwatch: Colors.blue),
+      home: const MapScreen(),
+    );
+  }
+}
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:geolocator/geolocator.dart';
+
+class LocationService {
+  static Future<bool> _handlePermission() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) return false;
+
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) return false;
+    }
+    if (permission == LocationPermission.deniedForever) return false;
+
+    return true;
+  }
+
+  static Future<void> startLocationSaving() async {
+    bool allowed = await _handlePermission();
+    if (!allowed) return;
+
+    Geolocator.getPositionStream(
+      locationSettings: const LocationSettings(
+        accuracy: LocationAccuracy.high,
+        distanceFilter: 5, // Save every 5 meters
+      ),
+    ).listen((Position position) {
+      _saveToFirebase(position.latitude, position.longitude);
+    });
+  }
+
+  static Future<void> _saveToFirebase(double lat, double lng) async {
+    await FirebaseFirestore.instance.collection("locations").add({
+      "latitude": lat,
+      "longitude": lng,
+      "timestamp": DateTime.now(),
+      //"userId": "123"  // add user id if required
+    });
+  }
+}
+
+import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:geolocator/geolocator.dart';
+import 'location_service.dart';
+
+class MapScreen extends StatefulWidget {
+  const MapScreen({super.key});
+
+  @override
+  State<MapScreen> createState() => _MapScreenState();
+}
+
+class _MapScreenState extends State<MapScreen> {
+  GoogleMapController? mapController;
+  LatLng? currentPosition;
+
+  @override
+  void initState() {
+    super.initState();
+    getCurrentLocation();
+    LocationService.startLocationSaving(); // start saving to firebase
+  }
+
+  Future<void> getCurrentLocation() async {
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) return;
+
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) return;
+    }
+
+    Position pos = await Geolocator.getCurrentPosition();
+    setState(() {
+      currentPosition = LatLng(pos.latitude, pos.longitude);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("Live Location Tracker")),
+      body: currentPosition == null
+          ? const Center(child: CircularProgressIndicator())
+          : GoogleMap(
+              initialCameraPosition: CameraPosition(
+                target: currentPosition!,
+                zoom: 16,
+              ),
+              onMapCreated: (controller) => mapController = controller,
+              markers: {
+                Marker(
+                  markerId: const MarkerId("me"),
+                  position: currentPosition!,
+                  infoWindow: const InfoWindow(title: "You are here"),
+                ),
+              },
+            ),
+    );
+  }
+}
+
+<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+<uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"/>
+
+<meta-data android:name="com.google.android.geo.API_KEY"
+           android:value="YOUR_GOOGLE_MAP_KEY"/>
+
 
